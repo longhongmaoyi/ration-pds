@@ -3,7 +3,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from '@/components/ui/table';
-import { PackageCheck } from 'lucide-react';
 
 export type MonthEntry = {
   status: 'distributed' | 'pending' | 'cancelled' | 'processing';
@@ -24,15 +23,32 @@ interface BeneficiaryCardProps {
   monthlyHeaders: string[];
 }
 
-const kycConfig: Record<string, { label: string; className: string }> = {
-  distributed: { label: 'वितरित', className: 'bg-green-100 text-green-800 border-green-200' },
-  pending: { label: 'लंबित', className: 'bg-gray-100 text-gray-800 border-gray-200' },
-  cancelled: { label: 'रद्द', className: 'bg-red-100 text-red-800 border-red-200' },
-  processing: { label: 'प्रगति में', className: 'bg-yellow-100 text-yellow-800 border-yellow-200' },
-};
+function getKycBadge(value: string) {
+  const normalized = value.trim();
+
+  if (!normalized || normalized === '0') {
+    return { label: 'लंबित', className: 'bg-gray-100 text-gray-800 border-gray-200' };
+  }
+
+  if (normalized === 'Cancel' || normalized === 'α' || normalized.toLowerCase() === 'cancel' || normalized.includes('नहीं हुआ')) {
+    return { label: 'रद्द', className: 'bg-red-100 text-red-800 border-red-200' };
+  }
+
+  if (normalized.includes('हो गया') || normalized.toLowerCase().includes('completed') || normalized.toLowerCase().includes('done')) {
+    return { label: 'पूर्ण', className: 'bg-green-100 text-green-800 border-green-200' };
+  }
+
+  if (normalized.toLowerCase().includes('processing') || normalized.includes('प्रगति') || normalized.toLowerCase().includes('in progress') || normalized.toLowerCase().includes('incomplete')) {
+    return { label: 'प्रगति में', className: 'bg-yellow-100 text-yellow-800 border-yellow-200' };
+  }
+
+  return { label: normalized, className: 'bg-green-100 text-green-800 border-green-200' };
+}
 
 export function BeneficiaryCard({ beneficiary, monthlyHeaders }: BeneficiaryCardProps) {
   const { sno, name, relative, familyMembers, totalEntitlement, monthly } = beneficiary;
+
+  const baseMonthCount = Math.floor(monthlyHeaders.length / 2);
 
   return (
     <Card className="overflow-hidden rounded-2xl border-2 border-red-100 bg-white/90 shadow-sm transition hover:shadow-md">
@@ -73,17 +89,19 @@ export function BeneficiaryCard({ beneficiary, monthlyHeaders }: BeneficiaryCard
               </TableRow>
             </TableHeader>
             <TableBody>
-              {monthlyHeaders.map((header, index) => {
-                const entry = monthly[`month-${index}`];
-                const config = kycConfig[entry?.status ?? 'pending'] ?? kycConfig.pending;
+              {Array.from({ length: baseMonthCount }).map((_, index) => {
+                const monthName = monthlyHeaders[index * 2] ?? `Month ${index + 1}`;
+                const rationEntry = monthly[`month-${index * 2}`];
+                const kycEntry = monthly[`month-${index * 2 + 1}`];
+                const kycBadge = getKycBadge(kycEntry?.kg ?? '');
 
                 return (
-                  <TableRow key={header} className="text-sm hindi">
-                    <TableCell className="font-medium text-gray-900">{header}</TableCell>
+                  <TableRow key={monthName} className="text-sm hindi">
+                    <TableCell className="font-medium text-gray-900">{monthName}</TableCell>
                     <TableCell className="text-gray-700">{familyMembers}</TableCell>
-                    <TableCell className="text-right text-gray-700">{entry?.kg ?? '0'}</TableCell>
+                    <TableCell className="text-right text-gray-700">{rationEntry?.kg ?? '0'}</TableCell>
                     <TableCell className="text-center">
-                      <Badge className={`${config.className} border text-[11px] hindi`}>{config.label}</Badge>
+                      <Badge className={`${kycBadge.className} border text-[11px] hindi`}>{kycBadge.label}</Badge>
                     </TableCell>
                   </TableRow>
                 );
