@@ -126,5 +126,10 @@
   }
   html {
     @apply font-sans;
+    font-family: var(--font-noto-devanagari), ui-sans-serif, system-ui, sans-serif;
+  }
+
+  .hindi {
+    font-family: var(--font-noto-devanagari), ui-sans-serif, system-ui, sans-serif;
   }
 }
