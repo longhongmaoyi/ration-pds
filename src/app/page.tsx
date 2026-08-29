@@ -14,9 +14,15 @@ function Dashboard() {
   useEffect(() => {
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000';
     fetch(`${baseUrl}/api/ration`, { cache: 'no-store' })
-      .then((res) => {
-        if (!res.ok) throw new Error('Failed to fetch ration data');
-        return res.json();
+      .then(async (res) => {
+        const contentType = res.headers.get('content-type') || '';
+        const body = contentType.includes('application/json') ? await res.json() : await res.text();
+        if (!res.ok) {
+          const message = typeof body === 'string' ? body : JSON.stringify(body);
+          console.error('Ration API error:', res.status, message);
+          throw new Error(message);
+        }
+        return body as { data: BeneficiaryRow[]; monthlyHeaders: string[] };
       })
       .then((json) => setState({ data: json.data ?? [], monthlyHeaders: json.monthlyHeaders ?? [] }))
       .catch((error) => setState({ data: [], monthlyHeaders: [], fetchError: error.message }));

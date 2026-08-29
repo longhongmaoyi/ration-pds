@@ -48,9 +48,15 @@ export async function GET() {
     });
 
     if (!response.ok) {
-      const text = await response.text();
-      console.error('Google Sheets API error:', response.status, text);
-      throw new Error(`Google Sheets API responded with ${response.status}`);
+      let errorDetails: unknown = response.statusText;
+      try {
+        errorDetails = await response.json();
+      } catch {
+        const text = await response.text();
+        errorDetails = text || response.statusText;
+      }
+      console.error('Google Sheets API error:', response.status, errorDetails);
+      return NextResponse.json({ error: errorDetails }, { status: response.status });
     }
 
     const payload = await response.json();
