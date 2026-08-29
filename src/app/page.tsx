@@ -12,8 +12,7 @@ function Dashboard() {
   });
 
   useEffect(() => {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000';
-    fetch(`${baseUrl}/api/ration`, { cache: 'no-store' })
+    fetch('/api/ration', { cache: 'no-store' })
       .then(async (res) => {
         const contentType = res.headers.get('content-type') || '';
         const body = contentType.includes('application/json') ? await res.json() : await res.text();
