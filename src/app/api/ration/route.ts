@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
 const SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID || '';
-const SHEET_NAME = 'Sheet1';
+const SHEET_NAME = 'Ledger_Domanpur_2026_Combined!A:AB';
 const API_KEY = process.env.GOOGLE_API_KEY || '';
 
 function buildApiUrl(): string {
